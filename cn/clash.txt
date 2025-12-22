@@ -1,0 +1,4 @@
++.esdict.cn
++.dedic.cn
++.frdic.com
++.eudic.net
