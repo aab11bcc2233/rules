@@ -2,3 +2,4 @@
 +.dedic.cn
 +.frdic.com
 +.eudic.net
++.ptexj.com
