@@ -1,0 +1,14 @@
+{
+  "version": 4,
+  "rules": [
+    {
+      "domain_suffix": [
+          "esdict.cn",
+          "dedic.cn",
+          "frdic.com",
+          "eudic.net",
+          "ptexj.com" 
+      ]
+    }
+  ]
+}
