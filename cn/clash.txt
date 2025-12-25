@@ -3,3 +3,4 @@
 +.frdic.com
 +.eudic.net
 +.ptexj.com
++.apeuni.com
