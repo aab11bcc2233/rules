@@ -8,3 +8,5 @@
 +.apeuni.com
 # 小门童智慧社区
 +.xiaomentong.cc
+# miniso
++.miniso.com
