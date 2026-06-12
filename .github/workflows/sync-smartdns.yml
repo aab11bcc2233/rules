@@ -33,6 +33,7 @@ jobs:
           SOURCES = {
               "smartdns-proxy.list": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.list",
               "google-cn.list": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/google-cn.list",
+              "onedrive.list": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo/geosite/onedrive.list",
               # "smartdns-direct.list": "https://example.com/direct.list",
           }
 
