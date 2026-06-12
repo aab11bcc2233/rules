@@ -32,6 +32,7 @@ jobs:
           # 后续增加规则，只需要在字典里增加 "文件名": "下载链接" 即可
           SOURCES = {
               "smartdns-proxy.list": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.list",
+              "google-cn.list": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/google-cn.list",
               # "smartdns-direct.list": "https://example.com/direct.list",
           }
 
