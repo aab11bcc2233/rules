@@ -52,34 +52,36 @@ jobs:
         run: |
           TAG_NAME="continuous-build"
           
-          # 1. 如果固定 Release 不存在，则自动创建它
-          gh release create "$TAG_NAME" --title "SmartDNS 持续集成固定版本" --notes "此 Release 内部始终保持最新的 3 个编译包，新包上传时会自动循环删除最旧的版本。" || true
+          # 1. 确保固定 Release 存在
+          gh release create "$TAG_NAME" --title "SmartDNS 持续集成固定版本" --notes "此 Release 内部始终保持最新的 5 个编译包，新包上传时会自动循环删除最旧的版本。" || true
           
-          # 2. 修改文件名：在后缀前加入当前运行编号（Run ID），确保文件名在多次运行中唯一
+          # 2. 修改文件名：加入时间戳后缀防止同名覆盖 (例如 _20260619_143000.deb)
           ORIGINAL_PATH="${{ steps.find_deb.outputs.deb_path }}"
           DEB_DIR=$(dirname "$ORIGINAL_PATH")
           DEB_NAME=$(basename "$ORIGINAL_PATH")
-          NEW_NAME="${DEB_NAME%.deb}_run${{ github.run_id }}.deb"
+          
+          CURRENT_TIME=$(date +"%Y%m%d_%H%M%S")
+          NEW_NAME="${DEB_NAME%.deb}_${CURRENT_TIME}.deb"
           NEW_PATH="$DEB_DIR/$NEW_NAME"
           mv "$ORIGINAL_PATH" "$NEW_PATH"
           
           echo "deb_final_name=$NEW_NAME" >> $GITHUB_OUTPUT
           echo "release_url=https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME" >> $GITHUB_OUTPUT
           
-          # 3. 检查当前 Release 中已有的资产数量
+          # 3. 精确检查当前 Release 中已有的 .deb 文件数量
           ASSETS_JSON=$(gh release view "$TAG_NAME" --json assets)
-          COUNT=$(echo "$ASSETS_JSON" | jq '.assets | length')
-          echo "当前 Release 中已有文件数量: $COUNT"
+          COUNT=$(echo "$ASSETS_JSON" | jq '[.assets[] | select(.name | endswith(".deb"))] | length')
+          echo "当前 Release 中已有 .deb 文件数量: $COUNT"
           
-          # 4. 如果文件数量大于等于 5，循环删除最旧的文件
-          while [ "$COUNT" -ge 3 ]; do
-            OLDEST_ASSET=$(gh release view "$TAG_NAME" --json assets --jq '.assets | sort_by(.createdAt) | .[0].name')
-            echo "检测到文件数达到上限，正在删除最旧的文件: $OLDEST_ASSET"
+          # 4. 如果 .deb 文件数量大于等于 5，循环删除最旧的 .deb 文件
+          while [ "$COUNT" -ge 5 ]; do
+            OLDEST_ASSET=$(echo "$ASSETS_JSON" | jq -r '[.assets[] | select(.name | endswith(".deb"))] | sort_by(.createdAt) | .[0].name')
+            echo "达到上限，正在清理最旧的固件: $OLDEST_ASSET"
             gh release delete-asset "$TAG_NAME" "$OLDEST_ASSET" -y
             
             # 重新拉取并更新计数器
             ASSETS_JSON=$(gh release view "$TAG_NAME" --json assets)
-            COUNT=$(echo "$ASSETS_JSON" | jq '.assets | length')
+            COUNT=$(echo "$ASSETS_JSON" | jq '[.assets[] | select(.name | endswith(".deb"))] | length')
           done
           
           # 5. 上传刚刚编译生成的新文件
@@ -91,14 +93,14 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
+          format: html
           message: |
-            *🚀 SmartDNS 滚动编译完成！*
+            <b>🚀 SmartDNS 滚动编译完成！</b>
             
-            *📊 编译系统*: Debian 13 (trixie) x86_64 兼容包
-            *📦 新增文件*: `${{ steps.manage_release.outputs.deb_final_name }}`
-            *♻️ 历史清理*: 已自动移出此 Release 中最旧的固件
-            *⛓️ 触发人员*: ${{ github.actor }}
+            <b>📊 编译系统</b>: Debian 13 (trixie) x86_64 兼容包
+            <b>📦 新增文件</b>: <code>${{ steps.manage_release.outputs.deb_final_name }}</code>
+            <b>♻️ 历史清理</b>: 当文件超出 5 个时，已自动移出最旧的固件
+            <b>⛓️ 触发人员</b>: ${{ github.actor }}
             
-            🎉 该固定 Release 的文件数已重新平衡并保持在 3 个以内。
-            👉 [点击进入固定 Release 列表查看](${{ steps.manage_release.outputs.release_url }})
+            🎉 该固定 Release 的文件数已重新平衡并保持在 5 个以内。
+            👉 <a href="${{ steps.manage_release.outputs.release_url }}">点击进入固定 Release 列表查看</a>
