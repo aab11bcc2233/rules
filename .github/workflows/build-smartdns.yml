@@ -10,6 +10,8 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest # Ubuntu runner 编译出的 deb 包完全兼容 Debian
+    env:
+      TZ: Asia/Shanghai # 如果你的 VPS 使用的是北京时间，请将其改为 Asia/Shanghai
 
     steps:
       - name: 检出当前仓库代码
