@@ -45,7 +45,7 @@ jobs:
           echo "deb_path=${DEB_FILE}" >> $GITHUB_OUTPUT
           echo "打包完成，原始文件路径为: ${DEB_FILE}"
 
-      - name: 管理 Release 资产（滚动保留最新3个）
+      - name: 管理 Release 资产（滚动保留最新5个）
         id: manage_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
