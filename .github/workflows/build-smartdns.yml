@@ -27,7 +27,7 @@ jobs:
       - name: 安装编译基础依赖
         run: |
           # 容器默认是 root 身份，直接安装所需依赖，并补充 gh 和 jq 用于 release 管理
-          apt-get install -y build-essential make gcc g++ fakeroot dpkg-dev libssl-dev jq gh
+          apt-get install -y build-essential make gcc g++ fakeroot dpkg-dev libssl-dev jq gh clang libclang-dev
 
       - name: 配置 Node.js 环境 (包含 npm)
         uses: actions/setup-node@v4
