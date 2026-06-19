@@ -47,9 +47,12 @@ jobs:
           # 自动去 package 目录下寻找刚才打包好的 .deb 文件路径
           DEB_FILE=$(find smartdns/package -name "*.deb" -type f | head -n 1)
           echo "deb_path=${DEB_FILE}" >> $GITHUB_OUTPUT
+          # 提取文件名用于通知
+          echo "deb_name=$(basename ${DEB_FILE})" >> $GITHUB_OUTPUT
           echo "打包完成，文件路径为: ${DEB_FILE}"
 
       - name: 创建 Release 并上传 .deb 安装包
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "build-${{ github.run_id }}"
@@ -58,3 +61,19 @@ jobs:
           files: ${{ steps.find_deb.outputs.deb_path }}
           draft: false
           prerelease: false
+
+      - name: 发送 Telegram 通知
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            *🚀 SmartDNS 编译完成！*
+            
+            *📊 编译系统*: Debian 13 (trixie) x86_64 兼容包
+            *📦 文件名称*: `${{ steps.find_deb.outputs.deb_name }}`
+            *⛓️ 触发人员*: ${{ github.actor }}
+            
+            🎉 安装包已成功发布至 GitHub Release。
+            👉 [点击进入 Release 下载](${{ steps.create_release.outputs.url }})
