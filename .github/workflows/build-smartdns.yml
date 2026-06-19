@@ -19,7 +19,7 @@ jobs:
       - name: 预安装环境工具
         run: |
           apt-get update
-          apt-get install -y git ca-certificates curl
+          apt-get install -y git ca-certificates curl wget unzip
 
       - name: 检出当前仓库代码
         uses: actions/checkout@v4
