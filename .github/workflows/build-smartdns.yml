@@ -60,41 +60,42 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="continuous-build"
+          REPO="${{ github.repository }}"
           
-          # 【修复核心】极其严格的防冲突判断逻辑
-          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+          # 1. 彻底绕过本地 Git 检查，直接通过 API 强行指定仓库查询
+          if gh release view "$TAG_NAME" --repo "$REPO" >/dev/null 2>&1; then
             echo "检测到 Release 已存在，直接进入文件更新流程。"
           else
             echo "检测到 Release 不存在，正在新建..."
-            # 加上 || true 确保即使偶尔遇到幽灵 Tag 冲突也不会中断流程
-            gh release create "$TAG_NAME" --title "SmartDNS 持续集成固定版本" --notes "内部始终保持最新的 5 个编译包，自动循环清理。" || true
+            gh release create "$TAG_NAME" --repo "$REPO" --title "SmartDNS 持续集成固定版本" --notes "内部始终保持最新的 5 个编译包，自动循环清理。" || true
           fi
           
+          # 2. 修改文件名：加入时间戳后缀
           ORIGINAL_PATH="${{ steps.find_deb.outputs.deb_path }}"
           DEB_DIR=$(dirname "$ORIGINAL_PATH")
           DEB_NAME=$(basename "$ORIGINAL_PATH")
           
-          # 加入时间戳重命名
           CURRENT_TIME=$(date +"%Y%m%d_%H%M%S")
           NEW_NAME="${DEB_NAME%.deb}_${CURRENT_TIME}.deb"
           NEW_PATH="$DEB_DIR/$NEW_NAME"
           mv "$ORIGINAL_PATH" "$NEW_PATH"
           
           echo "deb_final_name=$NEW_NAME" >> $GITHUB_OUTPUT
-          echo "release_url=https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "release_url=https://github.com/$REPO/releases/tag/$TAG_NAME" >> $GITHUB_OUTPUT
           
-          # 精确清理旧文件逻辑
-          ASSETS_JSON=$(gh release view "$TAG_NAME" --json assets)
+          # 3. 精确清理旧文件逻辑 (全部加上 --repo 强行指定)
+          ASSETS_JSON=$(gh release view "$TAG_NAME" --repo "$REPO" --json assets)
           COUNT=$(echo "$ASSETS_JSON" | jq '[.assets[] | select(.name | endswith(".deb"))] | length')
           
           while [ "$COUNT" -ge 5 ]; do
             OLDEST_ASSET=$(echo "$ASSETS_JSON" | jq -r '[.assets[] | select(.name | endswith(".deb"))] | sort_by(.createdAt) | .[0].name')
-            gh release delete-asset "$TAG_NAME" "$OLDEST_ASSET" -y
-            ASSETS_JSON=$(gh release view "$TAG_NAME" --json assets)
+            gh release delete-asset "$TAG_NAME" "$OLDEST_ASSET" -y --repo "$REPO"
+            ASSETS_JSON=$(gh release view "$TAG_NAME" --repo "$REPO" --json assets)
             COUNT=$(echo "$ASSETS_JSON" | jq '[.assets[] | select(.name | endswith(".deb"))] | length')
           done
           
-          gh release upload "$TAG_NAME" "$NEW_PATH"
+          # 4. 上传时同样强行指定仓库
+          gh release upload "$TAG_NAME" "$NEW_PATH" --repo "$REPO"
 
       - name: 发送 Telegram 通知
         uses: appleboy/telegram-action@master
