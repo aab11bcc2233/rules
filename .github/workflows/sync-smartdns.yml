@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/sync-smartdns.yml'
   schedule:
     # 每天北京时间早上 6 点执行 (UTC 时间 22:00)
     - cron: '0 22 * * *'
