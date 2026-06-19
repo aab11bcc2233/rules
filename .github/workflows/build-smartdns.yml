@@ -1,0 +1,60 @@
+name: Build SmartDNS for Debian
+
+on:
+  workflow_dispatch: # 允许在 Actions 页面手动点击按钮触发编译
+
+# 赋予 GITHUB_TOKEN 创建 Release 和上传文件的权限
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest # Ubuntu runner 编译出的 deb 包完全兼容 Debian
+
+    steps:
+      - name: 检出当前仓库代码
+        uses: actions/checkout@v4
+
+      - name: 安装编译基础依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential make gcc g++ git fakeroot dpkg-dev libssl-dev
+
+      - name: 配置 Node.js 环境 (包含 npm)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 使用长期支持 (LTS) 版本
+
+      - name: 配置 Rust 编译环境
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 克隆 SmartDNS 源码
+        run: |
+          git clone https://github.com/pymumu/smartdns.git
+          # 如果需要编译特定版本，可以取消下面这行的注释并将 master 替换为对应的 tag
+          # cd smartdns && git checkout master && cd ..
+
+      - name: 执行编译脚本
+        run: |
+          cd smartdns/package
+          chmod +x build-pkg.sh
+          # 按照你的需求指定参数：debian 平台, amd64 架构, 包含 ui
+          ./build-pkg.sh --platform debian --arch amd64 --with-ui
+
+      - name: 查找生成的 .deb 文件
+        id: find_deb
+        run: |
+          # 自动去 package 目录下寻找刚才打包好的 .deb 文件路径
+          DEB_FILE=$(find smartdns/package -name "*.deb" -type f | head -n 1)
+          echo "deb_path=${DEB_FILE}" >> $GITHUB_OUTPUT
+          echo "打包完成，文件路径为: ${DEB_FILE}"
+
+      - name: 创建 Release 并上传 .deb 安装包
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "build-${{ github.run_id }}"
+          name: "SmartDNS Debian AMD64 (自动编译)"
+          body: "这是针对 Debian amd64 架构自动编译的 SmartDNS 安装包。"
+          files: ${{ steps.find_deb.outputs.deb_path }}
+          draft: false
+          prerelease: false
