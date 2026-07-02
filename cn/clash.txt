@@ -1,13 +1,13 @@
 payload:
 # 每日英语听力
-- +.esdict.cn
-- +.dedic.cn
-- +.frdic.com
-- +.eudic.net
+- '+.esdict.cn'
+- '+.dedic.cn'
+- '+.frdic.com'
+- '+.eudic.net'
 # 猩际PTE
-- +.ptexj.com
-- +.apeuni.com
+- '+.ptexj.com'
+- '+.apeuni.com'
 # 小门童智慧社区
-- +.xiaomentong.cc
+- '+.xiaomentong.cc'
 # miniso
-- +.miniso.com
+- '+.miniso.com'
