@@ -1,15 +1,15 @@
 # 每日英语听力
-+.esdict.cn
-+.dedic.cn
-+.frdic.com
-+.eudic.net
+DOMAIN-SUFFIX,esdict.cn
+DOMAIN-SUFFIX,dedic.cn
+DOMAIN-SUFFIX,frdic.com
+DOMAIN-SUFFIX,eudic.net
 
 # 猩际PTE
-+.ptexj.com
-+.apeuni.com
+DOMAIN-SUFFIX,ptexj.com
+DOMAIN-SUFFIX,apeuni.com
 
 # 小门童智慧社区
-+.xiaomentong.cc
+DOMAIN-SUFFIX,xiaomentong.cc
 
 # miniso
-+.miniso.com
+DOMAIN-SUFFIX,miniso.com
