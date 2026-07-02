@@ -1,6 +1,6 @@
 # 每日英语听力
 +.esdict.cn
-+.dedic.cn'
++.dedic.cn
 +.frdic.com
 +.eudic.net
 
